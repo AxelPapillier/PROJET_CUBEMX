@@ -1,0 +1,1 @@
+tp3_info_embarquee\startup_stm32f446xx.o: startup_stm32f446xx.s

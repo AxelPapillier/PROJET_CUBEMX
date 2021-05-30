@@ -1,0 +1,26 @@
+--cpu=Cortex-M4.fp.sp
+"exercice5\startup_stm32f446xx.o"
+"exercice5\main.o"
+"exercice5\stm32f4xx_it.o"
+"exercice5\stm32f4xx_hal_msp.o"
+"exercice5\stm32f4xx_hal_tim.o"
+"exercice5\stm32f4xx_hal_tim_ex.o"
+"exercice5\stm32f4xx_hal_uart.o"
+"exercice5\stm32f4xx_hal_rcc.o"
+"exercice5\stm32f4xx_hal_rcc_ex.o"
+"exercice5\stm32f4xx_hal_flash.o"
+"exercice5\stm32f4xx_hal_flash_ex.o"
+"exercice5\stm32f4xx_hal_flash_ramfunc.o"
+"exercice5\stm32f4xx_hal_gpio.o"
+"exercice5\stm32f4xx_hal_dma_ex.o"
+"exercice5\stm32f4xx_hal_dma.o"
+"exercice5\stm32f4xx_hal_pwr.o"
+"exercice5\stm32f4xx_hal_pwr_ex.o"
+"exercice5\stm32f4xx_hal_cortex.o"
+"exercice5\stm32f4xx_hal.o"
+"exercice5\stm32f4xx_hal_exti.o"
+"exercice5\system_stm32f4xx.o"
+--library_type=microlib --strict --scatter "Exercice5\Exercice5.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "Exercice5.map" -o Exercice5\Exercice5.axf

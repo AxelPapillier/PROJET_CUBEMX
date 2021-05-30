@@ -1,0 +1,11 @@
+# depslib dependency file v1.0
+1622222171 source:c:\users\axel\documents\scolaire\projets2_info\exercice1\main.c
+	<stdio.h>
+	<stdint.h>
+	<stdlib.h>
+
+1622292420 source:c:\users\axel\documents\scolaire\projet_cubemx\exercice1\main.c
+	<stdio.h>
+	<stdint.h>
+	<stdlib.h>
+

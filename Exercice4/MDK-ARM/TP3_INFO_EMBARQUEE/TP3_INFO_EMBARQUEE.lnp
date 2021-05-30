@@ -1,0 +1,26 @@
+--cpu=Cortex-M4.fp.sp
+"tp3_info_embarquee\startup_stm32f446xx.o"
+"tp3_info_embarquee\main.o"
+"tp3_info_embarquee\stm32f4xx_it.o"
+"tp3_info_embarquee\stm32f4xx_hal_msp.o"
+"tp3_info_embarquee\stm32f4xx_hal_tim.o"
+"tp3_info_embarquee\stm32f4xx_hal_tim_ex.o"
+"tp3_info_embarquee\stm32f4xx_hal_uart.o"
+"tp3_info_embarquee\stm32f4xx_hal_rcc.o"
+"tp3_info_embarquee\stm32f4xx_hal_rcc_ex.o"
+"tp3_info_embarquee\stm32f4xx_hal_flash.o"
+"tp3_info_embarquee\stm32f4xx_hal_flash_ex.o"
+"tp3_info_embarquee\stm32f4xx_hal_flash_ramfunc.o"
+"tp3_info_embarquee\stm32f4xx_hal_gpio.o"
+"tp3_info_embarquee\stm32f4xx_hal_dma_ex.o"
+"tp3_info_embarquee\stm32f4xx_hal_dma.o"
+"tp3_info_embarquee\stm32f4xx_hal_pwr.o"
+"tp3_info_embarquee\stm32f4xx_hal_pwr_ex.o"
+"tp3_info_embarquee\stm32f4xx_hal_cortex.o"
+"tp3_info_embarquee\stm32f4xx_hal.o"
+"tp3_info_embarquee\stm32f4xx_hal_exti.o"
+"tp3_info_embarquee\system_stm32f4xx.o"
+--library_type=microlib --strict --scatter "TP3_INFO_EMBARQUEE\TP3_INFO_EMBARQUEE.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "TP3_INFO_EMBARQUEE.map" -o TP3_INFO_EMBARQUEE\TP3_INFO_EMBARQUEE.axf
