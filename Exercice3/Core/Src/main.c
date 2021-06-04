@@ -123,9 +123,10 @@ int main(void)
 	HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 1000);		
 	//cesar26_chiffre(mdp_encode, 81, mdp);
 	//cesar26_dechiffre(mdp_decode, 81, mdp_encode);
-	cesarASCII_chiffre (mdp_encode, 81, mdp);
-  cesarASCII_dechiffre (mdp_decode, 81, mdp_encode);
-	//apply_xor8(mdp_encode, 81, mdp, clefXOR);
+	//cesarASCII_chiffre (mdp_encode, 81, mdp);
+  //cesarASCII_dechiffre (mdp_decode, 81, mdp_encode);
+	apply_xor8(mdp_encode, 81, mdp, clefXOR);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -355,15 +356,19 @@ int apply_xor8(char* dst, int taille_dst, char* src, unsigned char cle)
     int j,i;
     unsigned char y;
     unsigned char decode[50];
+		nb = sprintf(annonce, "\n\r cle = %d ", cle);
+		HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 1000);
     nb = sprintf(annonce, "MDP encode : ");
 		HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 1000);
 	
     for (j=0; src[j]!='\0'; j++)
     {
-        dst [j] = src[j]^cle;
-				nb = sprintf(annonce, "%x ", dst[j]);
+				nb = sprintf(annonce, "\n\rsrc = %c ", src[j]);
 				HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 1000);
-        //printf ("%x ", dst[j]);
+        y = src[j]^cle;
+				dst[j] = y;
+				nb = sprintf(annonce, "\n\r%x ", dst[j]);
+				HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 1000);
     }
     nb = sprintf(annonce, "MDP decode : ");
 		HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 1000);
@@ -372,7 +377,6 @@ int apply_xor8(char* dst, int taille_dst, char* src, unsigned char cle)
         decode [i] = dst[i]^cle;
 				nb = sprintf(annonce, "%c ", decode[i]);
 				HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 1000);
-        //printf ("%c ", decode[i]);
     }
 }
 /* USER CODE END 4 */

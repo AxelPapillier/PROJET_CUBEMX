@@ -61,6 +61,7 @@ static void MX_USART2_UART_Init(void);
 	struct utilisateur{
 			char identifiant[30];
 			char password[30];
+			char type_encode[5];
 			};
 	void capteur();
 	void affichage_valeures(int valeur_utilisateur, int valeur_capteur);
@@ -70,6 +71,8 @@ static void MX_USART2_UART_Init(void);
 	int nb1;
 	int convert_Temp_utilisateur (int temp_utilisateur[81]);
 	int convert_Valeur_capteur(int base_temp);
+	char *cesarASCII_chiffre(char* dst, int taille_dst, char* src, struct utilisateur *list);
+	char *apply_xor8(char* dst, int taille_dst, char* src, unsigned char cle, struct utilisateur *list);
 	char annonce2[200]={'\0'};
 	
 	int menu(int i, struct utilisateur *list);
@@ -79,9 +82,12 @@ static void MX_USART2_UART_Init(void);
 	unsigned char *base64_encode(unsigned char *dst, int size, char *src, struct utilisateur *list);
 	void menu2(int i, struct utilisateur *list);
 	static const char tab[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";	
+	
 	char annonce[200]={'\0'};
 	int nb;
 	int valeur_de_i=0;
+	int clefAscii;
+	int clefXOR;
 /* USER CODE END 0 */
 
 /**
@@ -231,7 +237,7 @@ int menu(int i, struct utilisateur *list)
 	
 	for(int k = 0; annonce[k] != '\0'; k++)
 		annonce[k] = '\0';
-	nb = sprintf(annonce, "\nBienvenue ! Veuillez selectioner une des option :\n\n\r0. Quitter le programme\n\r1. S'inscrire\n\r2. Se connecter\n\n\n\r");
+	nb = sprintf(annonce, "\n\rBienvenue ! Veuillez selectioner une des option :\n\n\r0. Quitter le programme\n\r1. S'inscrire\n\r2. Se connecter\n\n\n\r");
 	HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 1000);
 	i = valeur_de_i;
 	while (choix_tab[0]=='\0'){
@@ -268,13 +274,13 @@ int menu(int i, struct utilisateur *list)
 	return i;
 }
 void capteur(){
-	int mess_temp ;
-	int valeur_utilisateur;
-	int increment;
-	char tabC[50] = {0};
-	char mess_temp_tab[10] = {'\0'};
-	int nb;
-	int k = 0;
+		int mess_temp ;
+		int valeur_utilisateur;
+		int increment;
+		char tabC[50] = {0};
+		char mess_temp_tab[10] = {'\0'};
+		int nb;
+		int k = 0;
 	
 		nb1 = sprintf(annonce2, "\nVeuillez entrez la temperature souhaite\n\r");
 		HAL_UART_Transmit(&huart2, (uint8_t*)annonce2, nb1, 1000);
@@ -373,6 +379,8 @@ void refroidir(int base_temp, int increment){
 int inscription(int i, struct utilisateur *list)
 {
 	int size;
+	char mdp_encode_ascii[81]= {'\0'};
+	char mdp_encode_xor[81]= {'\0'};
 	unsigned char *encode = NULL;
 	nb = sprintf(annonce, "Veuillez entrer un identifiant : \n\r");
 	HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 100);
@@ -388,19 +396,52 @@ int inscription(int i, struct utilisateur *list)
 	}
 	nb = sprintf(annonce, "\n\nidentifiant : %s password : %s\n\n\r", list[i].identifiant, list[i].password);
 	HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 100);
+	srand(list[i].password[0]+i*rand());
+	
+	clefAscii = rand()%95;
+	clefXOR = rand()%255;
+	
+	nb = sprintf(annonce, "\nclef xor: %d\n\n\r", clefXOR);
+	HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 100);
 	
 	size = 4 * ((strlen(list[i].password) + 2) / 3);
 	base64_encode(encode, size, list[i].password, list);
 	free(encode);
-	
-	nb = sprintf(annonce, "\npassword encode: %s\n\n\r", list[i].password);
+	nb = sprintf(annonce, "\npassword encode base64: %s\n\n\r", list[i].password);
 	HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 100);
+	
+	nb = sprintf(annonce, "Choisissez votre type d'encodage (cesar 'c' ou XOR 'x' : \n\r");
+	HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 100);
+	
+	while (list[i].type_encode[0]=='\0'){
+			HAL_UART_Receive(&huart2, (uint8_t*)list[i].type_encode, sizeof(list[i].type_encode), 500);
+	}
+	
+	if (list[i].type_encode[0] == 'c')
+	{
+		cesarASCII_chiffre(mdp_encode_ascii, 81,  list[i].password, list);
+		nb = sprintf(annonce, "\n\rpassword encode ascii: %s\n\n\r", list[i].password);
+		HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 100);
+	}
+	if (list[i].type_encode[0] == 'x')
+	{
+		nb = sprintf(annonce, "\n\rpassword encode XOR: ");
+		HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 1000);
+		apply_xor8(mdp_encode_xor, 81, list[i].password, clefXOR, list);
+		for (int p = 0; list[i].password[p] != '\0'; p++)
+		{
+			nb = sprintf(annonce, "%x ", list[i].password[p]);
+			HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 1000);
+		}
+	}
 	i = i + 1;
 	return i;
 }
 
 void connexion(int i, struct utilisateur *list)
 {
+		char mdp_encode_ascii[81]= {'\0'};
+		char mdp_encode_xor[81]= {'\0'};
 		int size;
 		unsigned char *encode = NULL;
     char identifiant[30]={'\0'};
@@ -431,9 +472,18 @@ void connexion(int i, struct utilisateur *list)
 										while (password[0]=='\0'){
 											HAL_UART_Receive(&huart2, (uint8_t*)password, sizeof(password), 5000);
 										}
-											size = 4 * ((strlen(password) + 2) / 3);
-											base64_encode(encode, size, password, list);
-											free(encode);
+										size = 4 * ((strlen(password) + 2) / 3);
+										base64_encode(encode, size, password, list);
+										free(encode);
+										if (list[k].type_encode[0] == 'c')
+										{
+											cesarASCII_chiffre(mdp_encode_ascii, 81,  password, list);
+										}
+										if (list[k].type_encode[0] == 'x')
+										{
+											apply_xor8(mdp_encode_xor, 81, password, clefXOR, list);
+										}
+											
 										if (strcmp(password, list[k].password) == 0)
 										{
 											
@@ -494,7 +544,7 @@ void menu2(int i, struct utilisateur *list)
 	char choix_tab[10]={'\0'};
 	int choix;
 	
-	nb = sprintf(annonce, "\nConnexion reussie, veuillez selectioner une des option :\n\n\r0. deconnexion\n\r1. Regler la temperature de votre four\n\r");
+	nb = sprintf(annonce, "\n\n\rConnexion reussie, veuillez selectioner une des option :\n\n\r0. deconnexion\n\r1. Regler la temperature de votre four\n\r");
 	HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 1000);
 	
 	while (choix_tab[0]=='\0'){
@@ -543,6 +593,44 @@ unsigned char *base64_encode(unsigned char *dst, int size, char *src, struct uti
         dst[size-1 - i] = '=';
     dst[size] = '\0';
 		for (int k = 0; dst [k] !='\0'; k++)
+        src[k] = dst[k];
+    return (dst);
+}
+
+char *cesarASCII_chiffre(char* dst, int taille_dst, char* src, struct utilisateur *list)
+{
+    int j=0;
+    int rang;
+		
+		nb = sprintf(annonce, "clef = %d\n\r", clefAscii);
+		HAL_UART_Transmit(&huart2, (uint8_t*)annonce, nb, 1000);
+
+    while(src[j] != '\0')
+    {
+            rang = src[j] - 32;
+            rang = (rang + clefAscii) % 95;
+            if(rang < 0) rang += 95;
+            dst[j] = 32 + rang;
+   
+        j++;
+    }
+    dst[j] = '\0';
+		
+
+		for (int k = 0; dst [k] !='\0'; k++)
+        src[k] = dst[k];
+    return (dst);
+}
+char *apply_xor8(char* dst, int taille_dst, char* src, unsigned char cle, struct utilisateur *list)
+{
+    int j;
+
+    for (j=0; src[j]!='\0'; j++)
+    {
+			dst[j] = src[j]^cle;
+			src[j] = dst[j];
+    }
+		for (int k = 0; dst[k] !='\0'; k++)
         src[k] = dst[k];
     return (dst);
 }
